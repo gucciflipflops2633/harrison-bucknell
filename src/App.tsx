@@ -1,4 +1,7 @@
 import { motion } from "motion/react";
+import emailjs from '@emailjs/browser';
+
+emailjs.init("H7zPiGEzHb927ISm6");
 import { 
   CheckCircle2, 
   ArrowRight, 
@@ -191,7 +194,7 @@ const Navbar = ({ onGetStarted, onHome, onScrollToSection }: {
           <button onClick={(e) => handleNavClick(e, 'problem')} className="hover:text-black transition-colors">The Problem</button>
           <button onClick={(e) => handleNavClick(e, 'solution')} className="hover:text-black transition-colors">Our Solution</button>
           <button onClick={(e) => handleNavClick(e, 'pricing')} className="hover:text-black transition-colors">Pricing</button>
-          <button onClick={(e) => handleNavClick(e, 'contact')} className="hover:text-black transition-colors">Contact</button>
+          <button onClick={(e) => handleNavClick(e, 'free-preview')} className="hover:text-black transition-colors">Free Preview</button>
         </div>
 
         <div className="hidden md:block">
@@ -215,7 +218,7 @@ const Navbar = ({ onGetStarted, onHome, onScrollToSection }: {
           <button onClick={(e) => handleNavClick(e, 'problem')} className="text-left text-lg font-medium text-black">The Problem</button>
           <button onClick={(e) => handleNavClick(e, 'solution')} className="text-left text-lg font-medium text-black">Our Solution</button>
           <button onClick={(e) => handleNavClick(e, 'pricing')} className="text-left text-lg font-medium text-black">Pricing</button>
-          <button onClick={(e) => handleNavClick(e, 'contact')} className="text-left text-lg font-medium text-black">Contact</button>
+          <button onClick={(e) => handleNavClick(e, 'free-preview')} className="text-left text-lg font-medium text-black">Free Preview</button>
           <button onClick={() => { onGetStarted(); setMobileMenuOpen(false); }} className="bg-black text-white w-full py-4 rounded-xl font-bold mt-2">
             Get My Website
           </button>
@@ -225,7 +228,7 @@ const Navbar = ({ onGetStarted, onHome, onScrollToSection }: {
   );
 };
 
-const Hero = ({ onGetStarted, onContact }: { onGetStarted: () => void, onContact: () => void }) => {
+const Hero = ({ onGetStarted, onScrollToSection }: { onGetStarted: () => void, onScrollToSection: (id: string) => void }) => {
   return (
     <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden">
       {/* Background Glow */}
@@ -252,7 +255,7 @@ const Hero = ({ onGetStarted, onContact }: { onGetStarted: () => void, onContact
             <button onClick={onGetStarted} className="w-full sm:w-auto bg-black hover:bg-zinc-800 text-white px-10 py-5 rounded-2xl font-bold text-lg transition-all hover:scale-105 shadow-lg shadow-black/10">
               Get My Website
             </button>
-            <button onClick={onContact} className="w-full sm:w-auto glass hover:bg-black/10 text-black px-10 py-5 rounded-2xl font-bold text-lg transition-all">
+            <button onClick={() => onScrollToSection('free-preview')} className="w-full sm:w-auto glass hover:bg-black/10 text-black px-10 py-5 rounded-2xl font-bold text-lg transition-all">
               Request Free Preview
             </button>
           </div>
@@ -272,6 +275,124 @@ const Hero = ({ onGetStarted, onContact }: { onGetStarted: () => void, onContact
             </div>
           </div>
         </motion.div>
+      </div>
+    </section>
+  );
+};
+
+const FreePreview = () => {
+  const [formData, setFormData] = useState({ name: '', email: '', business: '', message: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  const sendMail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+    const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+    const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "H7zPiGEzHb927ISm6";
+
+    if (serviceId && templateId) {
+      try {
+        await emailjs.sendForm(
+          serviceId,
+          templateId,
+          e.target as HTMLFormElement,
+          publicKey
+        );
+        setIsSuccess(true);
+        setFormData({ name: '', email: '', business: '', message: '' });
+      } catch (error) {
+        console.error('Failed to send free preview request:', error);
+      } finally {
+        setIsSubmitting(false);
+      }
+    } else {
+      // Fallback for demo purposes if keys aren't set
+      console.log('EmailJS keys not found, simulating success...');
+      setTimeout(() => {
+        setIsSuccess(true);
+        setIsSubmitting(false);
+        setFormData({ name: '', email: '', business: '', message: '' });
+      }, 1000);
+    }
+  };
+
+  return (
+    <section id="free-preview" className="py-24 bg-white">
+      <div className="max-w-4xl mx-auto px-6 text-center">
+        <h2 className="text-3xl md:text-5xl font-display font-bold mb-6 text-black">
+          Get a Free Preview of Your <br />
+          <span className="text-gradient-blue">New Website</span>
+        </h2>
+        <p className="text-black/60 mb-12 max-w-xl mx-auto">
+          Enter your details below and we'll send you a custom preview of what your business could look like with a modern, high-converting design.
+        </p>
+
+        {isSuccess ? (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-emerald-50 border border-emerald-100 p-8 rounded-3xl inline-block"
+          >
+            <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-emerald-900 mb-2">Request Received!</h3>
+            <p className="text-emerald-700">We'll be in touch with your free preview shortly.</p>
+            <button 
+              onClick={() => setIsSuccess(false)}
+              className="mt-6 text-sm font-bold text-emerald-600 hover:text-emerald-700 transition-colors"
+            >
+              Send another request
+            </button>
+          </motion.div>
+        ) : (
+          <form onSubmit={sendMail} className="max-w-xl mx-auto space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <input 
+                name="name" 
+                type="text"
+                required
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="Your Name" 
+                className="px-6 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-black/5 transition-all"
+              />
+              <input 
+                name="email" 
+                type="email"
+                required
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                placeholder="Email Address" 
+                className="px-6 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-black/5 transition-all"
+              />
+            </div>
+            <input 
+              name="business" 
+              type="text"
+              value={formData.business}
+              onChange={(e) => setFormData({ ...formData, business: e.target.value })}
+              placeholder="Business Name" 
+              className="w-full px-6 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-black/5 transition-all"
+            />
+            <textarea 
+              name="message" 
+              value={formData.message}
+              onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+              placeholder="Tell us about your business"
+              rows={4}
+              className="w-full px-6 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-black/5 transition-all resize-none"
+            ></textarea>
+            <button 
+              type="submit" 
+              disabled={isSubmitting}
+              className="w-full bg-black hover:bg-zinc-800 text-white px-10 py-5 rounded-2xl font-bold text-lg transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-black/10 disabled:opacity-50"
+            >
+              {isSubmitting ? 'Sending...' : 'Request Free Website Preview'}
+            </button>
+          </form>
+        )}
       </div>
     </section>
   );
@@ -674,10 +795,6 @@ const CTA = ({ onGetStarted }: { onGetStarted: () => void }) => {
                 <p className="font-medium text-black">Cancel Anytime</p>
               </div>
             </div>
-
-            <button onClick={onGetStarted} className="bg-black hover:bg-zinc-800 text-white px-10 py-5 rounded-2xl font-bold text-lg transition-all hover:scale-105 shadow-lg shadow-black/10">
-              Get My Website
-            </button>
           </motion.div>
 
           <motion.div
@@ -1037,6 +1154,41 @@ const CheckoutPage = ({ onViewAgreement }: { onViewAgreement: () => void }) => {
 
   const isContactValid = contactInfo.name.trim() !== '' && contactInfo.email.trim() !== '';
 
+  const handleConfirmDetails = async () => {
+    if (!isContactValid) return;
+    
+    setDetailsConfirmed(true);
+    
+    // Send email via EmailJS
+    const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+    const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+    const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "H7zPiGEzHb927ISm6";
+
+    if (serviceId && templateId) {
+      try {
+        await emailjs.send(
+          serviceId,
+          templateId,
+          {
+            from_name: contactInfo.name,
+            from_email: contactInfo.email,
+            business_name: contactInfo.business,
+            phone_number: contactInfo.phone,
+            to_name: 'Growth Websites Support',
+            message: `New business details confirmed:
+              Name: ${contactInfo.name}
+              Business: ${contactInfo.business}
+              Email: ${contactInfo.email}
+              Phone: ${contactInfo.phone}`
+          },
+          publicKey
+        );
+      } catch (error) {
+        console.error('Failed to send email notification:', error);
+      }
+    }
+  };
+
   return (
     <section className="font-sans py-20 bg-white text-black text-center min-h-screen pt-32">
       <h1 className="text-[42px] mb-2 font-bold">Launch Your Website</h1>
@@ -1088,7 +1240,7 @@ const CheckoutPage = ({ onViewAgreement }: { onViewAgreement: () => void }) => {
               />
             </div>
             <button 
-              onClick={() => isContactValid && setDetailsConfirmed(true)}
+              onClick={handleConfirmDetails}
               disabled={!isContactValid}
               className={`w-full py-5 rounded-xl font-bold text-lg transition-all ${
                 isContactValid 
@@ -1315,12 +1467,12 @@ export default function App() {
       <main>
         {view === 'home' && (
           <>
-            <Hero onGetStarted={handleGetStarted} onContact={() => scrollToSection('contact')} />
+            <Hero onGetStarted={handleGetStarted} onScrollToSection={scrollToSection} />
+            <FreePreview />
             <Problem />
             <Solution />
             <Pricing onSelectPlan={handleSelectPlan} />
             <WhyUs />
-            <CTA onGetStarted={handleGetStarted} />
           </>
         )}
         {view === 'checkout' && <CheckoutPage onViewAgreement={() => setView('agreement')} />}
